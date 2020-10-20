@@ -1,4 +1,3 @@
-
 library(devtools)
 library(dagitty)
 
@@ -47,3 +46,6 @@ net <- dagitty('dag {
   }')
 
 plot(net)
+
+data <- read.csv("Data/heart_disease_dataset.csv")
+head(data)
