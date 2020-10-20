@@ -1,224 +1,49 @@
-testImplications <- function( covariance.matrix, sample.size ){
-  library(ggm)
-  tst <- function(i){ pcor.test( pcor(i,covariance.matrix), length(i)-2, sample.size )$pvalue }
-  tos <- function(i){ paste(i,collapse=" ") }
-  implications <- list(c("age","sex"),
-                       c("age","rest_blood_press","cholesterol"),
-                       c("age","fasting_blood_sugar"),
-                       c("age","rest_ecg","rest_blood_press"),
-                       c("age","rest_ecg","cholesterol"),
-                       c("age","exercise_induced_angina","chest_pain"),
-                       c("age","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("age","ST_depression","rest_ecg","chest_pain"),
-                       c("age","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("age","ST_depression","chest_pain","rest_blood_press"),
-                       c("age","ST_depression","cholesterol","exercise_induced_angina"),
-                       c("age","ST_depression","cholesterol","chest_pain"),
-                       c("age","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("age","ST_slope","rest_ecg","chest_pain"),
-                       c("age","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("age","ST_slope","chest_pain","rest_blood_press"),
-                       c("age","ST_slope","cholesterol","exercise_induced_angina"),
-                       c("age","ST_slope","cholesterol","chest_pain"),
-                       c("age","coloured_arteries","cholesterol"),
-                       c("age","thalassemia"),
-                       c("age","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("age","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("age","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("age","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("age","diagnosis","chest_pain","coloured_arteries","thalassemia","rest_blood_press"),
-                       c("age","diagnosis","rest_ecg","cholesterol","ST_slope","ST_depression"),
-                       c("age","diagnosis","cholesterol","exercise_induced_angina"),
-                       c("age","diagnosis","cholesterol","chest_pain"),
-                       c("sex","rest_blood_press","cholesterol"),
-                       c("sex","chest_pain","age","cholesterol"),
-                       c("sex","fasting_blood_sugar"),
-                       c("sex","rest_ecg","rest_blood_press"),
-                       c("sex","rest_ecg","cholesterol"),
-                       c("sex","exercise_induced_angina","chest_pain"),
-                       c("sex","exercise_induced_angina","age","cholesterol"),
-                       c("sex","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("sex","ST_depression","rest_ecg","chest_pain"),
-                       c("sex","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("sex","ST_depression","chest_pain","rest_blood_press"),
-                       c("sex","ST_depression","cholesterol","exercise_induced_angina"),
-                       c("sex","ST_depression","cholesterol","chest_pain"),
-                       c("sex","ST_depression","cholesterol","age"),
-                       c("sex","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("sex","ST_slope","rest_ecg","chest_pain"),
-                       c("sex","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("sex","ST_slope","chest_pain","rest_blood_press"),
-                       c("sex","ST_slope","cholesterol","exercise_induced_angina"),
-                       c("sex","ST_slope","cholesterol","chest_pain"),
-                       c("sex","ST_slope","cholesterol","age"),
-                       c("sex","coloured_arteries","cholesterol"),
-                       c("sex","thalassemia"),
-                       c("sex","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("sex","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("sex","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("sex","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("sex","diagnosis","chest_pain","coloured_arteries","thalassemia","rest_blood_press"),
-                       c("sex","diagnosis","rest_ecg","cholesterol","ST_slope","ST_depression"),
-                       c("sex","diagnosis","cholesterol","exercise_induced_angina"),
-                       c("sex","diagnosis","cholesterol","chest_pain"),
-                       c("sex","diagnosis","cholesterol","age"),
-                       c("rest_blood_press","chest_pain","cholesterol"),
-                       c("rest_blood_press","fasting_blood_sugar","cholesterol"),
-                       c("rest_blood_press","max_heart_rate","thalassemia","sex","age"),
-                       c("rest_blood_press","max_heart_rate","cholesterol","thalassemia"),
-                       c("rest_blood_press","exercise_induced_angina","chest_pain"),
-                       c("rest_blood_press","exercise_induced_angina","cholesterol"),
-                       c("rest_blood_press","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("rest_blood_press","ST_depression","rest_ecg","chest_pain"),
-                       c("rest_blood_press","ST_depression","cholesterol","rest_ecg"),
-                       c("rest_blood_press","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("rest_blood_press","ST_slope","rest_ecg","chest_pain"),
-                       c("rest_blood_press","ST_slope","cholesterol","rest_ecg"),
-                       c("rest_blood_press","coloured_arteries","cholesterol"),
-                       c("rest_blood_press","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("rest_blood_press","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("rest_blood_press","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("rest_blood_press","diagnosis","cholesterol","rest_ecg","thalassemia"),
-                       c("chest_pain","fasting_blood_sugar","cholesterol","age"),
-                       c("chest_pain","rest_ecg","rest_blood_press"),
-                       c("chest_pain","rest_ecg","cholesterol"),
-                       c("chest_pain","max_heart_rate","sex","age"),
-                       c("chest_pain","max_heart_rate","cholesterol","age"),
-                       c("chest_pain","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("chest_pain","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("chest_pain","ST_depression","cholesterol","exercise_induced_angina"),
-                       c("chest_pain","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("chest_pain","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("chest_pain","ST_slope","cholesterol","exercise_induced_angina"),
-                       c("chest_pain","coloured_arteries","cholesterol"),
-                       c("chest_pain","thalassemia"),
-                       c("chest_pain","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("chest_pain","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("chest_pain","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("chest_pain","diagnosis","rest_ecg","cholesterol","ST_slope","ST_depression"),
-                       c("chest_pain","diagnosis","cholesterol","exercise_induced_angina"),
-                       c("cholesterol","rest_ecg","rest_blood_press"),
-                       c("cholesterol","max_heart_rate","sex","age"),
-                       c("cholesterol","exercise_induced_angina","chest_pain"),
-                       c("cholesterol","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("cholesterol","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("cholesterol","ST_depression","rest_ecg","chest_pain"),
-                       c("cholesterol","ST_depression","chest_pain","rest_blood_press"),
-                       c("cholesterol","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("cholesterol","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("cholesterol","ST_slope","rest_ecg","chest_pain"),
-                       c("cholesterol","ST_slope","chest_pain","rest_blood_press"),
-                       c("cholesterol","thalassemia"),
-                       c("cholesterol","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("cholesterol","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("cholesterol","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("cholesterol","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("cholesterol","diagnosis","chest_pain","coloured_arteries","thalassemia","rest_blood_press"),
-                       c("fasting_blood_sugar","rest_ecg","rest_blood_press"),
-                       c("fasting_blood_sugar","rest_ecg","cholesterol"),
-                       c("fasting_blood_sugar","max_heart_rate"),
-                       c("fasting_blood_sugar","exercise_induced_angina","chest_pain"),
-                       c("fasting_blood_sugar","exercise_induced_angina","age","cholesterol"),
-                       c("fasting_blood_sugar","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("fasting_blood_sugar","ST_depression","rest_ecg","chest_pain"),
-                       c("fasting_blood_sugar","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("fasting_blood_sugar","ST_depression","chest_pain","rest_blood_press"),
-                       c("fasting_blood_sugar","ST_depression","cholesterol","exercise_induced_angina"),
-                       c("fasting_blood_sugar","ST_depression","cholesterol","chest_pain"),
-                       c("fasting_blood_sugar","ST_depression","cholesterol","age"),
-                       c("fasting_blood_sugar","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("fasting_blood_sugar","ST_slope","rest_ecg","chest_pain"),
-                       c("fasting_blood_sugar","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("fasting_blood_sugar","ST_slope","chest_pain","rest_blood_press"),
-                       c("fasting_blood_sugar","ST_slope","cholesterol","exercise_induced_angina"),
-                       c("fasting_blood_sugar","ST_slope","cholesterol","chest_pain"),
-                       c("fasting_blood_sugar","ST_slope","cholesterol","age"),
-                       c("fasting_blood_sugar","coloured_arteries","cholesterol"),
-                       c("fasting_blood_sugar","thalassemia"),
-                       c("fasting_blood_sugar","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("fasting_blood_sugar","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("fasting_blood_sugar","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("fasting_blood_sugar","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("fasting_blood_sugar","diagnosis","chest_pain","coloured_arteries","thalassemia","rest_blood_press"),
-                       c("fasting_blood_sugar","diagnosis","rest_ecg","cholesterol","ST_slope","ST_depression"),
-                       c("fasting_blood_sugar","diagnosis","cholesterol","exercise_induced_angina"),
-                       c("fasting_blood_sugar","diagnosis","cholesterol","chest_pain"),
-                       c("fasting_blood_sugar","diagnosis","cholesterol","age"),
-                       c("rest_ecg","max_heart_rate","thalassemia","sex","age"),
-                       c("rest_ecg","max_heart_rate","cholesterol","thalassemia"),
-                       c("rest_ecg","max_heart_rate","rest_blood_press"),
-                       c("rest_ecg","exercise_induced_angina","chest_pain"),
-                       c("rest_ecg","exercise_induced_angina","cholesterol"),
-                       c("rest_ecg","exercise_induced_angina","rest_blood_press"),
-                       c("rest_ecg","coloured_arteries","cholesterol"),
-                       c("rest_ecg","coloured_arteries","rest_blood_press"),
-                       c("rest_ecg","thalassemia","rest_blood_press"),
-                       c("max_heart_rate","exercise_induced_angina","chest_pain"),
-                       c("max_heart_rate","exercise_induced_angina","age","cholesterol"),
-                       c("max_heart_rate","exercise_induced_angina","age","sex"),
-                       c("max_heart_rate","ST_depression","rest_ecg","exercise_induced_angina"),
-                       c("max_heart_rate","ST_depression","exercise_induced_angina","rest_blood_press"),
-                       c("max_heart_rate","ST_depression","rest_ecg","chest_pain"),
-                       c("max_heart_rate","ST_depression","chest_pain","rest_blood_press"),
-                       c("max_heart_rate","ST_depression","age","cholesterol","rest_ecg"),
-                       c("max_heart_rate","ST_depression","age","cholesterol","rest_blood_press"),
-                       c("max_heart_rate","ST_depression","cholesterol","thalassemia","exercise_induced_angina"),
-                       c("max_heart_rate","ST_depression","cholesterol","thalassemia","chest_pain"),
-                       c("max_heart_rate","ST_depression","cholesterol","thalassemia","age"),
-                       c("max_heart_rate","ST_depression","age","sex","thalassemia"),
-                       c("max_heart_rate","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("max_heart_rate","ST_slope","exercise_induced_angina","rest_blood_press"),
-                       c("max_heart_rate","ST_slope","rest_ecg","chest_pain"),
-                       c("max_heart_rate","ST_slope","chest_pain","rest_blood_press"),
-                       c("max_heart_rate","ST_slope","age","cholesterol","rest_ecg"),
-                       c("max_heart_rate","ST_slope","age","cholesterol","rest_blood_press"),
-                       c("max_heart_rate","ST_slope","cholesterol","thalassemia","exercise_induced_angina"),
-                       c("max_heart_rate","ST_slope","cholesterol","thalassemia","chest_pain"),
-                       c("max_heart_rate","ST_slope","cholesterol","thalassemia","age"),
-                       c("max_heart_rate","ST_slope","age","sex","thalassemia"),
-                       c("max_heart_rate","coloured_arteries","cholesterol"),
-                       c("max_heart_rate","coloured_arteries","age","sex"),
-                       c("max_heart_rate","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("max_heart_rate","diagnosis","coloured_arteries","thalassemia","rest_ecg","exercise_induced_angina"),
-                       c("max_heart_rate","diagnosis","coloured_arteries","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("max_heart_rate","diagnosis","rest_ecg","chest_pain","coloured_arteries","thalassemia"),
-                       c("max_heart_rate","diagnosis","chest_pain","coloured_arteries","thalassemia","rest_blood_press"),
-                       c("max_heart_rate","diagnosis","thalassemia","rest_ecg","ST_slope","ST_depression","cholesterol"),
-                       c("max_heart_rate","diagnosis","cholesterol","thalassemia","exercise_induced_angina"),
-                       c("max_heart_rate","diagnosis","cholesterol","thalassemia","chest_pain"),
-                       c("max_heart_rate","diagnosis","cholesterol","thalassemia","age"),
-                       c("max_heart_rate","diagnosis","age","sex","thalassemia"),
-                       c("exercise_induced_angina","coloured_arteries","cholesterol"),
-                       c("exercise_induced_angina","coloured_arteries","chest_pain"),
-                       c("exercise_induced_angina","thalassemia"),
-                       c("exercise_induced_angina","diagnosis","coloured_arteries","thalassemia","rest_ecg","ST_slope","ST_depression"),
-                       c("exercise_induced_angina","diagnosis","rest_ecg","cholesterol","ST_slope","ST_depression"),
-                       c("exercise_induced_angina","diagnosis","chest_pain","rest_ecg","ST_slope","ST_depression"),
-                       c("ST_depression","ST_slope","rest_ecg","exercise_induced_angina"),
-                       c("ST_depression","coloured_arteries","cholesterol"),
-                       c("ST_depression","coloured_arteries","chest_pain","rest_blood_press"),
-                       c("ST_depression","coloured_arteries","rest_blood_press","exercise_induced_angina"),
-                       c("ST_depression","coloured_arteries","chest_pain","rest_ecg"),
-                       c("ST_depression","coloured_arteries","rest_ecg","exercise_induced_angina"),
-                       c("ST_depression","thalassemia","rest_blood_press","cholesterol"),
-                       c("ST_depression","thalassemia","chest_pain","rest_blood_press"),
-                       c("ST_depression","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("ST_depression","thalassemia","rest_ecg","cholesterol"),
-                       c("ST_depression","thalassemia","chest_pain","rest_ecg"),
-                       c("ST_depression","thalassemia","exercise_induced_angina","rest_ecg"),
-                       c("ST_slope","coloured_arteries","cholesterol"),
-                       c("ST_slope","coloured_arteries","chest_pain","rest_blood_press"),
-                       c("ST_slope","coloured_arteries","rest_blood_press","exercise_induced_angina"),
-                       c("ST_slope","coloured_arteries","chest_pain","rest_ecg"),
-                       c("ST_slope","coloured_arteries","rest_ecg","exercise_induced_angina"),
-                       c("ST_slope","thalassemia","rest_blood_press","cholesterol"),
-                       c("ST_slope","thalassemia","chest_pain","rest_blood_press"),
-                       c("ST_slope","thalassemia","exercise_induced_angina","rest_blood_press"),
-                       c("ST_slope","thalassemia","rest_ecg","cholesterol"),
-                       c("ST_slope","thalassemia","chest_pain","rest_ecg"),
-                       c("ST_slope","thalassemia","exercise_induced_angina","rest_ecg"),
-                       c("coloured_arteries","thalassemia"))
-  data.frame( implication=unlist(lapply(implications,tos)),
-              pvalue=unlist( lapply( implications, tst ) ) )
-  
-}
+
+library(devtools)
+library(dagitty)
+
+net <- dagitty('dag {
+  bb="0,0,1,1"
+  ST_depression [pos="0.371,0.925"]
+  ST_slope [pos="0.378,0.805"]
+  age [pos="0.822,0.078"]
+  chest_pain [pos="0.391,0.347"]
+  cholesterol [pos="0.681,0.246"]
+  coloured_arteries [pos="0.730,0.615"]
+  diagnosis [pos="0.625,0.929"]
+  exercise_induced_angina [pos="0.185,0.568"]
+  fasting_blood_sugar [pos="0.877,0.571"]
+  max_heart_rate [pos="0.122,0.079"]
+  rest_blood_press [pos="0.343,0.639"]
+  rest_ecg [pos="0.107,0.790"]
+  sex [pos="0.563,0.145"]
+  thalassemia [pos="0.215,0.291"]
+  ST_depression -> diagnosis
+  ST_slope -> diagnosis
+  age -> cholesterol
+  age -> fasting_blood_sugar
+  age -> max_heart_rate
+  chest_pain -> diagnosis
+  chest_pain -> exercise_induced_angina
+  cholesterol -> chest_pain
+  cholesterol -> coloured_arteries
+  cholesterol -> diagnosis
+  cholesterol -> max_heart_rate
+  cholesterol -> rest_blood_press
+  coloured_arteries -> diagnosis
+  exercise_induced_angina -> rest_ecg
+  fasting_blood_sugar -> cholesterol
+  fasting_blood_sugar -> diagnosis
+  max_heart_rate -> rest_ecg
+  rest_blood_press -> diagnosis
+  rest_blood_press -> rest_ecg
+  rest_ecg -> ST_depression
+  rest_ecg -> ST_slope
+  sex -> cholesterol
+  sex -> max_heart_rate
+  thalassemia -> exercise_induced_angina
+  thalassemia -> max_heart_rate
+  thalassemia -> rest_blood_press
+  }')
+
+plot(net)
