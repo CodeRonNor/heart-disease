@@ -50,8 +50,56 @@ net <- dagitty('dag {
 plot(net)
 
 ### Data
-data <- read.csv("Data/heart_disease_dataset.csv")
+data <- read.csv("data/processed_cleveland.csv")
+colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press", 
+                    "cholesterol", "fasting_blood_sugar", "rest_ecg", 
+                    "max_heart_rate", "exercise_induced_angina", 
+                    "ST_depression", "ST_slope", "coloured_arteries",
+                    "thalassemia", "diagnosis")
 head(data)
+
+### Data Analysis
+
+# Continuous Variables
+range(data$age)
+range(data$rest_blood_press)
+range(data$cholesterol)
+range(data$max_heart_rate)
+range(data$ST_depression)
+
+# Categorical Variables
+factor(data$sex)[1]
+factor(data$chest_pain)[1]
+factor(data$fasting_blood_sugar)[1]
+factor(data$rest_ecg)[1]
+factor(data$exercise_induced_angina)[1]
+factor(data$ST_slope)[1]
+factor(data$coloured_arteries)[1] # Levels: ? 0.0 1.0 2.0 3.0
+factor(data$thalassemia)[1] # Levels: ? 3.0 6.0 7.0
+factor(data$diagnosis)[1] 
+
+# NANs
+nrow(data[which(data$coloured_arteries == '?'),]) # 4
+nrow(data[which(data$thalassemia == '?'),]) # 2
+
+# We can either remove these rows:
+nrow(data) # 302
+data <- data[-which(data$coloured_arteries == '?'),]
+nrow(data) # 298
+data <- data[-which(data$thalassemia == '?'),]
+nrow(data) # 296
+
+# Or set these to certain values
+# data$coloured_arteries[which(data$coloured_arteries == '?')] <- '0.0'
+# data$thalassemia[which(data$thalassemia == '?')] <- '3.0'
+
+# Convert from character to numeric
+data$thalassemia <- as.numeric(data$thalassemia)
+data$coloured_arteries <- as.numeric(data$coloured_arteries)
 
 ### Test Network Structure 
 impliedConditionalIndependencies(net)
+
+### Chi-squared Test (only for categorical variables)
+chisq.test(data$sex, data$age)
+
