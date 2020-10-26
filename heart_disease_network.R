@@ -1,6 +1,8 @@
-library(devtools)
+### Libraries
 library(dagitty)
+library(bayesianNetworks)
 
+### Network Structure
 net <- dagitty('dag {
   bb="0,0,1,1"
   ST_depression [pos="0.371,0.925"]
@@ -47,5 +49,9 @@ net <- dagitty('dag {
 
 plot(net)
 
+### Data
 data <- read.csv("Data/heart_disease_dataset.csv")
 head(data)
+
+### Test Network Structure 
+impliedConditionalIndependencies(net)
