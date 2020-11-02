@@ -1,6 +1,7 @@
 ### Libraries
 library(dagitty)
 library(bayesianNetworks)
+library(bnlearn)
 
 ### Network Structure
 net <- dagitty('dag {
@@ -58,7 +59,7 @@ colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press",
                     "thalassemia", "diagnosis")
 head(data)
 
-### Data Analysis
+### Data Inspection
 
 # Continuous Variables
 range(data$age)
@@ -77,6 +78,8 @@ factor(data$ST_slope)[1]
 factor(data$coloured_arteries)[1] # Levels: ? 0.0 1.0 2.0 3.0
 factor(data$thalassemia)[1] # Levels: ? 3.0 6.0 7.0
 factor(data$diagnosis)[1] 
+
+### Preprocessing
 
 # NANs
 nrow(data[which(data$coloured_arteries == '?'),]) # 4
@@ -97,9 +100,32 @@ nrow(data) # 296
 data$thalassemia <- as.numeric(data$thalassemia)
 data$coloured_arteries <- as.numeric(data$coloured_arteries)
 
+# Convert from int to numeric
+data$diagnosis <- as.numeric(data$diagnosis)
+
+# Normalize Continuous Data
+data$age <- scale(data$age)
+data$rest_blood_press <- scale(data$rest_blood_press)
+data$cholesterol <- scale(data$cholesterol)
+data$max_heart_rate <- scale(data$max_heart_rate)
+data$ST_depression <- scale(data$ST_depression)
+head(data)
+
 ### Test Network Structure 
 impliedConditionalIndependencies(net)
 
-### Chi-squared Test (only for categorical variables)
+# Chi-squared Test (only for categorical variables)
 chisq.test(data$sex, data$age)
+chisq.test(data)
 
+### Fit model
+
+# Convert model to bnlearn
+net_bn <- model2network(toString(net,"bnlearn")) 
+
+# Fit on data
+fit <- bn.fit(net_bn, data)
+fit
+
+predict(fit, node= 'diagnosis', data)
+data$diagnosis
