@@ -52,7 +52,7 @@ net <- dagitty('dag {
 plot(net)
 
 ### Data
-data <- read.csv("data/processed_cleveland.csv")
+data <- read.csv("data/processed_cleveland.csv", header = FALSE)
 colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press", 
                     "cholesterol", "fasting_blood_sugar", "rest_ecg", 
                     "max_heart_rate", "exercise_induced_angina", 
@@ -61,6 +61,9 @@ colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press",
 head(data)
 
 ### Data Inspection
+
+# Plots
+plot(data$age)
 
 # Continuous Variables
 range(data$age)
@@ -80,26 +83,27 @@ factor(data$coloured_arteries)[1] # Levels: ? 0.0 1.0 2.0 3.0
 factor(data$thalassemia)[1] # Levels: ? 3.0 6.0 7.0
 factor(data$diagnosis)[1] 
 
+
 ### Preprocessing
 
 # NANs
 nrow(data[which(data$coloured_arteries == '?'),]) # 4
 nrow(data[which(data$thalassemia == '?'),]) # 2
 
-# We can either remove these rows:
-nrow(data) # 302
-data <- data[-which(data$coloured_arteries == '?'),]
-nrow(data) # 298
-data <- data[-which(data$thalassemia == '?'),]
-nrow(data) # 296
+# Set these to values that occur most in the dataset 
+counts_thal <- table(data$thalassemia)
+barplot(counts_thal) # The most occuring value is 3.0
 
-# Or set these to certain values
-# data$coloured_arteries[which(data$coloured_arteries == '?')] <- '0.0'
-# data$thalassemia[which(data$thalassemia == '?')] <- '3.0'
+counts_col <- table(data$coloured_arteries)
+barplot(counts_col) # The most occuring value is 0.0
+
+data$coloured_arteries[which(data$coloured_arteries == '?')] <- '0.0'
+data$thalassemia[which(data$thalassemia == '?')] <- '3.0'
 
 # Convert from character to numeric
 data$thalassemia <- as.numeric(data$thalassemia)
 data$coloured_arteries <- as.numeric(data$coloured_arteries)
+head(data)
 
 # Convert from int to numeric
 data$diagnosis <- as.numeric(data$diagnosis)
@@ -147,3 +151,5 @@ fit
 
 predict(fit, node= 'diagnosis', data)
 data$diagnosis
+
+
