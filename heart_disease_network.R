@@ -2,6 +2,7 @@
 library(dagitty)
 library(bayesianNetworks)
 library(bnlearn)
+library(lavaan)
 
 ### Network Structure
 net <- dagitty('dag {
@@ -109,6 +110,23 @@ data$rest_blood_press <- scale(data$rest_blood_press)
 data$cholesterol <- scale(data$cholesterol)
 data$max_heart_rate <- scale(data$max_heart_rate)
 data$ST_depression <- scale(data$ST_depression)
+head(data)
+
+### Dealing with different types of data
+
+# Don't have to do anything to binary variables
+
+# Convert continuous data to ordered categorical data
+data$age <- as.numeric(cut(data$age, c(20,30,40,50,60,70,80), labels = c(1, 2, 3, 4, 5, 6)))
+
+# Order categorical data
+data$age <- ordered(data$age, levels=c(1, 2, 3, 4, 5, 6))
+data$coloured_arteries <- ordered(data$coloured_arteries, levels = c(0, 1, 2, 3))
+
+# Deal with categorical variables that have no logical ordering (Use only 2 levels)
+data$diagnosis <- as.numeric(data$diagnosis != 0)
+data$thalassemia <- as.numeric(data$thalassemia != 3)
+
 head(data)
 
 ### Test Network Structure 
