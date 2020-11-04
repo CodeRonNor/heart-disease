@@ -6,48 +6,64 @@ library(lavaan)
 
 ### Network Structure
 net <- dagitty('dag {
-  bb="0,0,1,1"
-  ST_depression [pos="0.371,0.925"]
-  ST_slope [pos="0.378,0.805"]
-  age [pos="0.822,0.078"]
-  chest_pain [pos="0.391,0.347"]
-  cholesterol [pos="0.681,0.246"]
-  coloured_arteries [pos="0.730,0.615"]
-  diagnosis [pos="0.625,0.929"]
-  exercise_induced_angina [pos="0.185,0.568"]
-  fasting_blood_sugar [pos="0.877,0.571"]
-  max_heart_rate [pos="0.122,0.079"]
-  rest_blood_press [pos="0.343,0.639"]
-  rest_ecg [pos="0.107,0.790"]
-  sex [pos="0.563,0.145"]
-  thalassemia [pos="0.215,0.291"]
-  ST_depression -> diagnosis
-  ST_slope -> diagnosis
-  age -> cholesterol
-  age -> fasting_blood_sugar
-  age -> max_heart_rate
-  chest_pain -> diagnosis
-  chest_pain -> exercise_induced_angina
-  cholesterol -> chest_pain
-  cholesterol -> coloured_arteries
-  cholesterol -> diagnosis
-  cholesterol -> max_heart_rate
-  cholesterol -> rest_blood_press
-  coloured_arteries -> diagnosis
-  exercise_induced_angina -> rest_ecg
-  fasting_blood_sugar -> cholesterol
-  fasting_blood_sugar -> diagnosis
-  max_heart_rate -> rest_ecg
-  rest_blood_press -> diagnosis
-  rest_blood_press -> rest_ecg
-  rest_ecg -> ST_depression
-  rest_ecg -> ST_slope
-  sex -> cholesterol
-  sex -> max_heart_rate
-  thalassemia -> exercise_induced_angina
-  thalassemia -> max_heart_rate
-  thalassemia -> rest_blood_press
-  }')
+ bb="0,0,1,1"
+ST_depression [pos="0.711,0.156"]
+ST_slope [pos="0.713,0.501"]
+age [pos="0.068,0.464"]
+chest_pain [pos="0.324,0.253"]
+cholesterol [pos="0.526,0.625"]
+coloured_arteries [pos="0.709,0.717"]
+diagnosis [pos="0.961,0.424"]
+exercise_induced_angina [pos="0.320,0.611"]
+fasting_blood_sugar [pos="0.534,0.843"]
+max_heart_rate [pos="0.530,0.232"]
+rest_blood_press [pos="0.526,0.410"]
+rest_ecg [pos="0.526,0.064"]
+sex [pos="0.068,0.230"]
+thalassemia [pos="0.068,0.716"]
+ST_depression -> diagnosis
+ST_slope -> diagnosis
+age -> chest_pain
+age -> cholesterol
+age -> exercise_induced_angina
+age -> fasting_blood_sugar
+age -> max_heart_rate
+age -> rest_blood_press
+age -> rest_ecg
+chest_pain -> cholesterol
+chest_pain -> diagnosis
+chest_pain -> max_heart_rate
+chest_pain -> rest_blood_press
+chest_pain -> rest_ecg
+cholesterol -> coloured_arteries
+cholesterol -> diagnosis
+coloured_arteries -> diagnosis
+exercise_induced_angina -> cholesterol
+exercise_induced_angina -> max_heart_rate
+exercise_induced_angina -> rest_blood_press
+exercise_induced_angina -> rest_ecg
+fasting_blood_sugar -> diagnosis
+max_heart_rate -> ST_depression
+max_heart_rate -> ST_slope
+max_heart_rate -> diagnosis
+rest_blood_press -> ST_depression
+rest_blood_press -> ST_slope
+rest_blood_press -> coloured_arteries
+rest_blood_press -> diagnosis
+rest_ecg -> ST_depression
+rest_ecg -> ST_slope
+sex -> chest_pain
+sex -> cholesterol
+sex -> fasting_blood_sugar
+sex -> max_heart_rate
+sex -> rest_blood_press
+sex -> rest_ecg
+thalassemia -> chest_pain
+thalassemia -> exercise_induced_angina
+thalassemia -> max_heart_rate
+thalassemia -> rest_blood_press
+thalassemia -> rest_ecg
+}')
 
 plot(net)
 
@@ -83,7 +99,6 @@ factor(data$coloured_arteries)[1] # Levels: ? 0.0 1.0 2.0 3.0
 factor(data$thalassemia)[1] # Levels: ? 3.0 6.0 7.0
 factor(data$diagnosis)[1] 
 
-
 ### Preprocessing
 
 # NANs
@@ -109,27 +124,32 @@ head(data)
 data$diagnosis <- as.numeric(data$diagnosis)
 
 # Normalize Continuous Data
-data$age <- scale(data$age)
-data$rest_blood_press <- scale(data$rest_blood_press)
-data$cholesterol <- scale(data$cholesterol)
-data$max_heart_rate <- scale(data$max_heart_rate)
-data$ST_depression <- scale(data$ST_depression)
-head(data)
+# data$age <- scale(data$age)
+# data$rest_blood_press <- scale(data$rest_blood_press)
+# data$cholesterol <- scale(data$cholesterol)
+# data$max_heart_rate <- scale(data$max_heart_rate)
+# data$ST_depression <- scale(data$ST_depression)
+# head(data)
 
 ### Dealing with different types of data
 
 # Don't have to do anything to binary variables
 
 # Convert continuous data to ordered categorical data
-data$age <- as.numeric(cut(data$age, c(20,30,40,50,60,70,80), labels = c(1, 2, 3, 4, 5, 6)))
+data$age <- as.numeric(cut(data$age, c(20,35,50,65,80), labels = c(1, 2, 3, 4)))
+data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90,100,125,150,175,200), labels = c(1,2,3,4,5)))
+data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 400, 600), labels = c(1,2,3,4)))
+data$max_heart_rate <- as.numeric(cut(data$max_heart_rate, c(70, 100, 125, 150, 175, 210), labels = c(1,2,3,4,5)))
+data$ST_depression <- as.numeric(cut(data$ST_depression, c(0, 0.5, 2, 6.5), labels = c(1,2,3)))
+hist(data$ST_depression)
 
-# Order categorical data
-data$age <- ordered(data$age, levels=c(1, 2, 3, 4, 5, 6))
-data$coloured_arteries <- ordered(data$coloured_arteries, levels = c(0, 1, 2, 3))
-
-# Deal with categorical variables that have no logical ordering (Use only 2 levels)
-data$diagnosis <- as.numeric(data$diagnosis != 0)
-data$thalassemia <- as.numeric(data$thalassemia != 3)
+# # Order categorical data
+# data$age <- ordered(data$age, levels=c(1, 2, 3, 4, 5, 6))
+# data$coloured_arteries <- ordered(data$coloured_arteries, levels = c(0, 1, 2, 3))
+# 
+# # Deal with categorical variables that have no logical ordering (Use only 2 levels)
+# data$diagnosis <- as.numeric(data$diagnosis != 0)
+# data$thalassemia <- as.numeric(data$thalassemia != 3)
 
 head(data)
 
@@ -139,6 +159,8 @@ impliedConditionalIndependencies(net)
 # Chi-squared Test (only for categorical variables)
 chisq.test(data$sex, data$age)
 chisq.test(data)
+
+localTests(net, data, type="cis.chisq")
 
 ### Fit model
 
