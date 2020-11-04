@@ -6,7 +6,7 @@ library(lavaan)
 
 ### Network Structure
 net <- dagitty('dag {
- bb="0,0,1,1"
+bb="0,0,1,1"
 ST_depression [pos="0.711,0.156"]
 ST_slope [pos="0.713,0.501"]
 age [pos="0.068,0.464"]
@@ -20,7 +20,7 @@ max_heart_rate [pos="0.530,0.232"]
 rest_blood_press [pos="0.526,0.410"]
 rest_ecg [pos="0.526,0.064"]
 sex [pos="0.068,0.230"]
-thalassemia [pos="0.068,0.716"]
+thalassemia [pos="0.173,0.649"]
 ST_depression -> diagnosis
 ST_slope -> diagnosis
 age -> chest_pain
@@ -58,12 +58,14 @@ sex -> fasting_blood_sugar
 sex -> max_heart_rate
 sex -> rest_blood_press
 sex -> rest_ecg
+sex -> thalassemia
 thalassemia -> chest_pain
 thalassemia -> exercise_induced_angina
 thalassemia -> max_heart_rate
 thalassemia -> rest_blood_press
 thalassemia -> rest_ecg
-}')
+}
+')
 
 plot(net)
 
@@ -141,7 +143,6 @@ data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90,100,125,150,
 data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 400, 600), labels = c(1,2,3,4)))
 data$max_heart_rate <- as.numeric(cut(data$max_heart_rate, c(70, 100, 125, 150, 175, 210), labels = c(1,2,3,4,5)))
 data$ST_depression <- as.numeric(cut(data$ST_depression, c(0, 0.5, 2, 6.5), labels = c(1,2,3)))
-hist(data$ST_depression)
 
 # # Order categorical data
 # data$age <- ordered(data$age, levels=c(1, 2, 3, 4, 5, 6))
@@ -172,6 +173,3 @@ fit <- bn.fit(net_bn, data)
 fit
 
 predict(fit, node= 'diagnosis', data)
-data$diagnosis
-
-
