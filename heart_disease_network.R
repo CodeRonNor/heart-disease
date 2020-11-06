@@ -20,8 +20,10 @@ max_heart_rate [pos="0.530,0.232"]
 rest_blood_press [pos="0.526,0.410"]
 rest_ecg [pos="0.526,0.064"]
 sex [pos="0.068,0.230"]
-thalassemia [pos="0.173,0.649"]
+thalassemia [pos="0.068,0.716"]
 ST_depression -> diagnosis
+fasting_blood_sugar -> ST_depression
+fasting_blood_sugar -> coloured_arteries
 ST_slope -> diagnosis
 age -> chest_pain
 age -> cholesterol
@@ -30,6 +32,7 @@ age -> fasting_blood_sugar
 age -> max_heart_rate
 age -> rest_blood_press
 age -> rest_ecg
+age -> coloured_arteries
 chest_pain -> cholesterol
 chest_pain -> diagnosis
 chest_pain -> max_heart_rate
@@ -42,6 +45,7 @@ exercise_induced_angina -> cholesterol
 exercise_induced_angina -> max_heart_rate
 exercise_induced_angina -> rest_blood_press
 exercise_induced_angina -> rest_ecg
+exercise_induced_angina -> chest_pain
 fasting_blood_sugar -> diagnosis
 max_heart_rate -> ST_depression
 max_heart_rate -> ST_slope
@@ -58,12 +62,13 @@ sex -> fasting_blood_sugar
 sex -> max_heart_rate
 sex -> rest_blood_press
 sex -> rest_ecg
-sex -> thalassemia
+sex -> exercise_induced_angina
 thalassemia -> chest_pain
 thalassemia -> exercise_induced_angina
 thalassemia -> max_heart_rate
 thalassemia -> rest_blood_press
 thalassemia -> rest_ecg
+thalassemia -> ST_slope
 }
 ')
 
@@ -117,51 +122,27 @@ barplot(counts_col) # The most occuring value is 0.0
 data$coloured_arteries[which(data$coloured_arteries == '?')] <- '0.0'
 data$thalassemia[which(data$thalassemia == '?')] <- '3.0'
 
-# Convert from character to numeric
+# Convert to numeric
 data$thalassemia <- as.numeric(data$thalassemia)
 data$coloured_arteries <- as.numeric(data$coloured_arteries)
-head(data)
-
-# Convert from int to numeric
 data$diagnosis <- as.numeric(data$diagnosis)
-
-# Normalize Continuous Data
-# data$age <- scale(data$age)
-# data$rest_blood_press <- scale(data$rest_blood_press)
-# data$cholesterol <- scale(data$cholesterol)
-# data$max_heart_rate <- scale(data$max_heart_rate)
-# data$ST_depression <- scale(data$ST_depression)
-# head(data)
 
 ### Dealing with different types of data
 
-# Don't have to do anything to binary variables
-
 # Convert continuous data to ordered categorical data
 data$age <- as.numeric(cut(data$age, c(20,35,50,65,80), labels = c(1, 2, 3, 4)))
-data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90,100,125,150,175,200), labels = c(1,2,3,4,5)))
+data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90, 120, 140, 200), labels = c(1,2,3)))
 data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 400, 600), labels = c(1,2,3,4)))
-data$max_heart_rate <- as.numeric(cut(data$max_heart_rate, c(70, 100, 125, 150, 175, 210), labels = c(1,2,3,4,5)))
-data$ST_depression <- as.numeric(cut(data$ST_depression, c(0, 0.5, 2, 6.5), labels = c(1,2,3)))
-
-# # Order categorical data
-# data$age <- ordered(data$age, levels=c(1, 2, 3, 4, 5, 6))
-# data$coloured_arteries <- ordered(data$coloured_arteries, levels = c(0, 1, 2, 3))
-# 
-# # Deal with categorical variables that have no logical ordering (Use only 2 levels)
-# data$diagnosis <- as.numeric(data$diagnosis != 0)
-# data$thalassemia <- as.numeric(data$thalassemia != 3)
-
+data$max_heart_rate <- as.numeric(cut(data$max_heart_rate, c(50, 110, 140, 175, 210), labels = c(1,2,3,4)))
+data$ST_depression <- as.numeric(cut(data$ST_depression, c(-0.1, 0.0, 2, 6.5), labels = c(0,1,2)))
 head(data)
 
 ### Test Network Structure 
 impliedConditionalIndependencies(net)
 
 # Chi-squared Test (only for categorical variables)
-chisq.test(data$sex, data$age)
-chisq.test(data)
-
-localTests(net, data, type="cis.chisq")
+localTests(old_net, data, type="cis.chisq", max.conditioning.variables=4)
+options(digits=2)
 
 ### Fit model
 
@@ -169,7 +150,8 @@ localTests(net, data, type="cis.chisq")
 net_bn <- model2network(toString(net,"bnlearn")) 
 
 # Fit on data
-fit <- bn.fit(net_bn, data)
+fit <- bn.fit(net_bn, as.data.frame(data))
 fit
 
-predict(fit, node= 'diagnosis', data)
+# Predict 
+test <- predict(fit, node= 'diagnosis', data)
