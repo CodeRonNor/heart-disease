@@ -81,6 +81,7 @@ thalassemia -> ST_slope
 plot(net)
 
 ### Data
+data <- read.csv("data/processed_cleveland.csv", header = FALSE)
 colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press", 
                     "cholesterol", "fasting_blood_sugar", "rest_ecg", 
                     "max_heart_rate", "exercise_induced_angina", 
@@ -149,12 +150,12 @@ data$diagnosis[which(data$diagnosis > 0)] <- 1
 impliedConditionalIndependencies(net)
 
 # Chi-squared Test (only for categorical variables)
-localTests(old_net, data, type="cis.chisq")
+localTests(net, data, type="cis.chisq")
 
 ### Fit model
 
 # Convert model to bnlearn
-net_bn <- model2network(toString(old_net,"bnlearn")) 
+net_bn <- model2network(toString(net,"bnlearn")) 
 
 # Fit on data
 fit <- bn.fit(net_bn, as.data.frame(data))
