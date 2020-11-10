@@ -3,6 +3,10 @@ library(dagitty)
 library(bayesianNetworks)
 library(bnlearn)
 library(lavaan)
+library(rbin)
+
+### Options
+options(digits=2)
 
 ### Network Structure
 net <- dagitty('dag {
@@ -22,9 +26,8 @@ rest_ecg [pos="0.526,0.064"]
 sex [pos="0.068,0.230"]
 thalassemia [pos="0.068,0.716"]
 ST_depression -> diagnosis
-fasting_blood_sugar -> ST_depression
-fasting_blood_sugar -> coloured_arteries
 ST_slope -> diagnosis
+ST_slope -> ST_depression
 age -> chest_pain
 age -> cholesterol
 age -> exercise_induced_angina
@@ -38,15 +41,18 @@ chest_pain -> diagnosis
 chest_pain -> max_heart_rate
 chest_pain -> rest_blood_press
 chest_pain -> rest_ecg
+chest_pain -> coloured_arteries
 cholesterol -> coloured_arteries
-cholesterol -> diagnosis
 coloured_arteries -> diagnosis
 exercise_induced_angina -> cholesterol
 exercise_induced_angina -> max_heart_rate
 exercise_induced_angina -> rest_blood_press
 exercise_induced_angina -> rest_ecg
 exercise_induced_angina -> chest_pain
+exercise_induced_angina -> ST_slope
 fasting_blood_sugar -> diagnosis
+fasting_blood_sugar -> ST_depression
+fasting_blood_sugar -> coloured_arteries
 max_heart_rate -> ST_depression
 max_heart_rate -> ST_slope
 max_heart_rate -> diagnosis
@@ -75,7 +81,6 @@ thalassemia -> ST_slope
 plot(net)
 
 ### Data
-data <- read.csv("data/processed_cleveland.csv", header = FALSE)
 colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press", 
                     "cholesterol", "fasting_blood_sugar", "rest_ecg", 
                     "max_heart_rate", "exercise_induced_angina", 
@@ -130,28 +135,32 @@ data$diagnosis <- as.numeric(data$diagnosis)
 ### Dealing with different types of data
 
 # Convert continuous data to ordered categorical data
-data$age <- as.numeric(cut(data$age, c(20,35,50,65,80), labels = c(1, 2, 3, 4)))
+data$age <- as.numeric(cut(data$age, 5))
 data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90, 120, 140, 200), labels = c(1,2,3)))
-data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 400, 600), labels = c(1,2,3,4)))
+data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 600), labels = c(1,2,3)))
 data$max_heart_rate <- as.numeric(cut(data$max_heart_rate, c(50, 110, 140, 175, 210), labels = c(1,2,3,4)))
 data$ST_depression <- as.numeric(cut(data$ST_depression, c(-0.1, 0.0, 2, 6.5), labels = c(0,1,2)))
 head(data)
+
+# Bin diagnosis
+data$diagnosis[which(data$diagnosis > 0)] <- 1 
 
 ### Test Network Structure 
 impliedConditionalIndependencies(net)
 
 # Chi-squared Test (only for categorical variables)
-localTests(old_net, data, type="cis.chisq", max.conditioning.variables=4)
-options(digits=2)
+localTests(old_net, data, type="cis.chisq")
 
 ### Fit model
 
 # Convert model to bnlearn
-net_bn <- model2network(toString(net,"bnlearn")) 
+net_bn <- model2network(toString(old_net,"bnlearn")) 
 
 # Fit on data
 fit <- bn.fit(net_bn, as.data.frame(data))
 fit
 
 # Predict 
-test <- predict(fit, node= 'diagnosis', data)
+test <- predict(fit, node= 'diagnosis', data = data, method = "bayes-lw", n = 10000)
+test
+
