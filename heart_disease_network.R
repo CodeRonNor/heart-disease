@@ -1,9 +1,13 @@
+### Install Packages
+# install.packages('e1071', dependencies=TRUE)
+# TODO
+
 ### Libraries
 library(dagitty)
 library(bayesianNetworks)
 library(bnlearn)
 library(lavaan)
-library(rbin)
+library(pROC)
 
 ### Options
 options(digits=2)
@@ -152,16 +156,46 @@ impliedConditionalIndependencies(net)
 # Chi-squared Test (only for categorical variables)
 localTests(net, data, type="cis.chisq")
 
+### Split train and test Data
+train_index <- sample(1:nrow(data), 0.8 * nrow(data))
+test_index <- setdiff(1:nrow(data), train_index)
+
+train_data = data[train_index,]
+test_data = data[test_index,]
+
 ### Fit model
 
 # Convert model to bnlearn
 net_bn <- model2network(toString(net,"bnlearn")) 
 
 # Fit on data
-fit <- bn.fit(net_bn, as.data.frame(data))
-fit
+fit <- bn.fit(net_bn, train_data); fit
 
 # Predict 
-test <- predict(fit, node= 'diagnosis', data = data, method = "bayes-lw", n = 10000)
-test
+preds <- predict(fit, node= 'diagnosis', data = test_data, method = "bayes-lw", n = 10000); 
 
+### Analysis
+
+# Check range
+range(preds)
+
+# Round values
+preds = round(preds)
+
+# ROC & AUC
+png("plots/roc.png")
+plot(roc(preds, test_data$diagnosis))
+dev.off()
+auc(preds, test_data$diagnosis)
+
+# Confusion Matrix
+cm <- confusionMatrix(data = factor(preds), reference = factor(test_data$diagnosis)); cm
+png("plots/confusion_matrix.png")
+ggplot(data = as.data.frame(cm$table), aes(Reference, Prediction, fill= Freq)) +
+  geom_tile() + geom_text(aes(label=Freq)) +
+  scale_fill_gradient(low="white", high="#B4261A") +
+  labs(x = "Ground Truth",y = "Prediction", fill="Frequency", title = "Bayesian Network Predictions") +
+  scale_x_discrete(labels=c("No Heart Disease", "Heart Disease")) +
+  scale_y_discrete(labels=c("No Heart Disease", "Heart Disease")) +
+  theme_bw()
+dev.off() 
