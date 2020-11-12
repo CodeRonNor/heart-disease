@@ -12,7 +12,68 @@ library(pROC)
 ### Options
 options(digits=2)
 
-### Network Structure
+### Network Structures
+old_net <- dagitty('dag {
+bb="0,0,1,1"
+ST_depression [pos="0.711,0.156"]
+ST_slope [pos="0.713,0.501"]
+age [pos="0.068,0.464"]
+chest_pain [pos="0.324,0.253"]
+cholesterol [pos="0.526,0.625"]
+coloured_arteries [pos="0.709,0.717"]
+diagnosis [pos="0.961,0.424"]
+exercise_induced_angina [pos="0.320,0.611"]
+fasting_blood_sugar [pos="0.534,0.843"]
+max_heart_rate [pos="0.530,0.232"]
+rest_blood_press [pos="0.526,0.410"]
+rest_ecg [pos="0.526,0.064"]
+sex [pos="0.068,0.230"]
+thalassemia [pos="0.068,0.716"]
+ST_depression -> diagnosis
+ST_slope -> diagnosis
+age -> chest_pain
+age -> cholesterol
+age -> exercise_induced_angina
+age -> fasting_blood_sugar
+age -> max_heart_rate
+age -> rest_blood_press
+age -> rest_ecg
+chest_pain -> cholesterol
+chest_pain -> diagnosis
+chest_pain -> max_heart_rate
+chest_pain -> rest_blood_press
+chest_pain -> rest_ecg
+cholesterol -> coloured_arteries
+cholesterol -> diagnosis
+coloured_arteries -> diagnosis
+exercise_induced_angina -> cholesterol
+exercise_induced_angina -> max_heart_rate
+exercise_induced_angina -> rest_blood_press
+exercise_induced_angina -> rest_ecg
+fasting_blood_sugar -> diagnosis
+max_heart_rate -> ST_depression
+max_heart_rate -> ST_slope
+max_heart_rate -> diagnosis
+rest_blood_press -> ST_depression
+rest_blood_press -> ST_slope
+rest_blood_press -> coloured_arteries
+rest_blood_press -> diagnosis
+rest_ecg -> ST_depression
+rest_ecg -> ST_slope
+sex -> chest_pain
+sex -> cholesterol
+sex -> fasting_blood_sugar
+sex -> max_heart_rate
+sex -> rest_blood_press
+sex -> rest_ecg
+thalassemia -> chest_pain
+thalassemia -> exercise_induced_angina
+thalassemia -> max_heart_rate
+thalassemia -> rest_blood_press
+thalassemia -> rest_ecg
+}
+')
+
 net <- dagitty('dag {
 bb="0,0,1,1"
 ST_depression [pos="0.711,0.156"]
@@ -82,7 +143,51 @@ thalassemia -> ST_slope
 }
 ')
 
+pruned_net <- dagitty('dag {
+bb="-5.198,-4.944,6.567,7.657"
+ST_depression [pos="-3.579,-4.576"]
+ST_slope [pos="-4.217,-1.331"]
+age [pos="2.272,0.152"]
+chest_pain [pos="-0.885,-0.152"]
+cholesterol [pos="1.525,3.714"]
+coloured_arteries [pos="1.210,-2.529"]
+diagnosis [pos="-1.711,-3.396"]
+exercise_induced_angina [pos="-4.263,1.062"]
+fasting_blood_sugar [pos="3.897,-2.776"]
+max_heart_rate [pos="-2.097,-1.628"]
+rest_blood_press [pos="5.587,-0.105"]
+rest_ecg [pos="4.512,2.476"]
+sex [pos="-0.695,2.591"]
+thalassemia [pos="-2.788,1.952"]
+ST_depression -> diagnosis [beta=" 0.13 "]
+ST_slope -> ST_depression [beta=" 0.54 "]
+ST_slope -> diagnosis [beta=" 0.15 "]
+age -> cholesterol [beta=" 0.13 "]
+age -> coloured_arteries [beta=" 0.34 "]
+age -> fasting_blood_sugar [beta=" 0.12 "]
+age -> max_heart_rate [beta=" -0.34 "]
+age -> rest_blood_press [beta=" 0.27 "]
+age -> rest_ecg [beta=" 0.14 "]
+chest_pain -> coloured_arteries [beta=" 0.23 "]
+chest_pain -> diagnosis [beta=" 0.29 "]
+chest_pain -> max_heart_rate [beta=" -0.19 "]
+coloured_arteries -> diagnosis [beta=" 0.36 "]
+exercise_induced_angina -> chest_pain [beta=" 0.33 "]
+exercise_induced_angina -> max_heart_rate [beta=" -0.23 "]
+fasting_blood_sugar -> coloured_arteries [beta=" 0.12 "]
+max_heart_rate -> ST_depression [beta=" -0.17 "]
+max_heart_rate -> ST_slope [beta=" -0.28 "]
+max_heart_rate -> diagnosis [beta=" -0.15 "]
+sex -> cholesterol [beta=" -0.15 "]
+thalassemia -> ST_slope [beta=" 0.23 "]
+thalassemia -> chest_pain [beta=" 0.16 "]
+thalassemia -> exercise_induced_angina [beta=" 0.33 "]
+}
+')
+
+plot(old_net)
 plot(net)
+plot(pruned_net, show.coefficients=TRUE)
 
 ### Data
 data <- read.csv("data/processed_cleveland.csv", header = FALSE)
@@ -94,9 +199,6 @@ colnames(data) <- c("age", "sex", "chest_pain", "rest_blood_press",
 head(data)
 
 ### Data Inspection
-
-# Plots
-plot(data$age)
 
 # Continuous Variables
 range(data$age)
@@ -154,18 +256,26 @@ data$diagnosis[which(data$diagnosis > 0)] <- 1
 impliedConditionalIndependencies(net)
 
 # Chi-squared Test (only for categorical variables)
-localTests(net, data, type="cis.chisq")
+localTests(pruned_net, data, type="cis.chisq", max.conditioning.variables = 4)
 
 ### Edge Coefficients
+edges = ""
 for( x in names(net) ){
-  # print(x)
   px <- dagitty::parents(net, x)
-  # print(px)
   for( y in px ){
     tst <- ci.test( x, y,setdiff(px,y), data=data )
-    print(paste(y,'->',x, tst$effect, tst$p.value ) )
+    
+    # Print edges
+    print(paste(y,'->',x, tst$statistic, tst$p.value ) )
+    
+    # Determine edges to make the pruned net
+    # if(tst$p.value < 0.05){
+    # edges <- paste(edges,y,'->',x, '[beta = "',round(tst$statistic, digits = 2),'"]\n')
+    # }
   }
 }
+cat(edges)
+
 
 ### Split train and test Data
 train_index <- sample(1:nrow(data), 0.8 * nrow(data))
