@@ -156,6 +156,17 @@ impliedConditionalIndependencies(net)
 # Chi-squared Test (only for categorical variables)
 localTests(net, data, type="cis.chisq")
 
+### Edge Coefficients
+for( x in names(net) ){
+  # print(x)
+  px <- dagitty::parents(net, x)
+  # print(px)
+  for( y in px ){
+    tst <- ci.test( x, y,setdiff(px,y), data=data )
+    print(paste(y,'->',x, tst$effect, tst$p.value ) )
+  }
+}
+
 ### Split train and test Data
 train_index <- sample(1:nrow(data), 0.8 * nrow(data))
 test_index <- setdiff(1:nrow(data), train_index)
