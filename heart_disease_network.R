@@ -191,7 +191,7 @@ thalassemia -> exercise_induced_angina [beta=" 0.33 "]
 }
 ')
 
-### Save network plots
+### Save Network Plots
 png('plots/old_net.png', width = 750, height = 750)
 plot(old_net)
 dev.off()
@@ -213,14 +213,14 @@ head(data)
 
 ### Data Inspection
 
-# Continuous Variables
+# Continuous variables
 range(data$age)
 range(data$rest_blood_press)
 range(data$cholesterol)
 range(data$max_heart_rate)
 range(data$ST_depression)
 
-# Categorical Variables
+# Categorical variables
 factor(data$sex)[1]
 factor(data$chest_pain)[1]
 factor(data$fasting_blood_sugar)[1]
@@ -252,7 +252,7 @@ data$thalassemia <- as.numeric(data$thalassemia)
 data$coloured_arteries <- as.numeric(data$coloured_arteries)
 data$diagnosis <- as.numeric(data$diagnosis)
 
-### Dealing with different types of data
+### Dealing with Different Types of Data
 
 # Convert continuous data to categorical data
 data$age <- as.numeric(cut(data$age, 5))
@@ -268,8 +268,8 @@ data$diagnosis[which(data$diagnosis > 0)] <- 1
 ### Test Network Structure 
 impliedConditionalIndependencies(net)
 
-# Chi-squared Test (only for categorical variables)
-localTests(pruned_net, data, type="cis.chisq", max.conditioning.variables = 4)
+# Chi-squared Test 
+localTests(net, data, type="cis.chisq", max.conditioning.variables = 4)
 
 ### Edge Coefficients
 edges = ""
@@ -301,7 +301,7 @@ for (test_index in folds) {
   train_data = data[train_index,]
   
   # Convert model to bnlearn
-  net_bn <- model2network(toString(pruned_net,"bnlearn")) 
+  net_bn <- model2network(toString(net,"bnlearn")) 
   
   # Fit on data
   fit <- bn.fit(net_bn, train_data); fit
@@ -323,18 +323,18 @@ range(all_preds)
 all_preds = round(all_preds)
 
 # ROC & AUC
-png("plots/prunednet_roc.png")
+png("plots/net_roc.png")
 plot(roc(all_preds, all_labels))
 dev.off()
 auc(all_preds, all_labels)
 
 # Confusion Matrix
 cm <- confusionMatrix(data = factor(all_preds), reference = factor(all_labels)); cm
-png("plots/prunednet_confusion_matrix.png", width = 650)
+png("plots/net_confusion_matrix.png", width = 650)
 ggplot(data = as.data.frame(cm$table), aes(sort(Reference,decreasing = T), Prediction, fill= Freq)) +
   geom_tile() + geom_text(aes(label=Freq), size = 7) +
   scale_fill_gradient(low="white", high="#B4261A") +
-  labs(x = "Ground Truth",y = "Prediction", fill="Frequency", title = "Pruned Bayesian Network Predictions", size=8) +
+  labs(x = "Ground Truth",y = "Prediction", fill="Frequency", title = "Bayesian Network Predictions", size=8) +
   scale_x_discrete(labels=c("Heart Disease", "No Heart Disease")) +
   scale_y_discrete(labels=c("No Heart Disease", "Heart Disease")) +
   theme_bw(base_size = 15)
