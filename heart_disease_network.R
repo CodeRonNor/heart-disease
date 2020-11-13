@@ -289,47 +289,54 @@ for( x in names(net) ){
 }
 cat(edges)
 
-
-### Split train and test Data
-train_index <- sample(1:nrow(data), 0.8 * nrow(data))
-test_index <- setdiff(1:nrow(data), train_index)
-
-train_data = data[train_index,]
-test_data = data[test_index,]
-
-### Fit model
-
-# Convert model to bnlearn
-net_bn <- model2network(toString(net,"bnlearn")) 
-
-# Fit on data
-fit <- bn.fit(net_bn, train_data); fit
-
-# Predict 
-preds <- predict(fit, node= 'diagnosis', data = test_data, method = "bayes-lw", n = 10000) 
+### Cross Validation
+k = 10
+folds = createFolds(data$sex, k = k)
+all_preds <- NULL
+all_labels <- NULL
+for (test_index in folds) {
+  # Split data into test and train
+  train_index <- setdiff(1:nrow(data), test_index)
+  test_data = data[test_index,]
+  train_data = data[train_index,]
+  
+  # Convert model to bnlearn
+  net_bn <- model2network(toString(pruned_net,"bnlearn")) 
+  
+  # Fit on data
+  fit <- bn.fit(net_bn, train_data); fit
+  
+  # Predict 
+  preds <- predict(fit, node= 'diagnosis', data = test_data, method = "bayes-lw", n = 10000) 
+  
+  # Save all data
+  all_preds <- c(all_preds, preds)
+  all_labels <- c(all_labels, test_data$diagnosis)
+}
 
 ### Analysis
 
 # Check range
-range(preds)
+range(all_preds)
 
 # Round values
-preds = round(preds)
+all_preds = round(all_preds)
 
 # ROC & AUC
-png("plots/roc.png")
-plot(roc(preds, test_data$diagnosis))
+png("plots/prunednet_roc.png")
+plot(roc(all_preds, all_labels))
 dev.off()
-auc(preds, test_data$diagnosis)
+auc(all_preds, all_labels)
 
 # Confusion Matrix
-cm <- confusionMatrix(data = factor(preds), reference = factor(test_data$diagnosis)); cm
-png("plots/confusion_matrix.png", width = 650)
-ggplot(data = as.data.frame(cm$table), aes(Reference, Prediction, fill= Freq)) +
-  geom_tile() + geom_text(aes(label=Freq)) +
+cm <- confusionMatrix(data = factor(all_preds), reference = factor(all_labels)); cm
+png("plots/prunednet_confusion_matrix.png", width = 650)
+ggplot(data = as.data.frame(cm$table), aes(sort(Reference,decreasing = T), Prediction, fill= Freq)) +
+  geom_tile() + geom_text(aes(label=Freq), size = 7) +
   scale_fill_gradient(low="white", high="#B4261A") +
-  labs(x = "Ground Truth",y = "Prediction", fill="Frequency", title = "Bayesian Network Predictions") +
-  scale_x_discrete(labels=c("No Heart Disease", "Heart Disease")) +
+  labs(x = "Ground Truth",y = "Prediction", fill="Frequency", title = "Pruned Bayesian Network Predictions", size=8) +
+  scale_x_discrete(labels=c("Heart Disease", "No Heart Disease")) +
   scale_y_discrete(labels=c("No Heart Disease", "Heart Disease")) +
-  theme_bw()
-dev.off() 
+  theme_bw(base_size = 15)
+dev.off()
+
