@@ -1,13 +1,19 @@
 ### Install Packages
-# install.packages('e1071', dependencies=TRUE)
-# TODO
+# install.packages('remotes', dependencies = TRUE)
+# install.packages('bnlearn', dependencies=TRUE)
+# install.packages('pROC', dependencies=TRUE)
+# install.packages('ggplot2', dependencies=TRUE)
+# install.packages('caret', dependencies=TRUE)
+# install.packages("dagitty", dependencies = TRUE)
+# remotes::install_github("jtextor/bayesianNetworks")
 
 ### Libraries
 library(dagitty)
 library(bayesianNetworks)
 library(bnlearn)
-library(lavaan)
 library(pROC)
+library(ggplot2)
+library(caret)
 
 ### Options
 options(digits=2)
@@ -185,9 +191,16 @@ thalassemia -> exercise_induced_angina [beta=" 0.33 "]
 }
 ')
 
+### Save network plots
+png('plots/old_net.png', width = 750, height = 750)
 plot(old_net)
+dev.off()
+png('plots/net.png', width = 750, height = 750)
 plot(net)
+dev.off()
+png('plots/pruned_net.png', width = 750, height = 750)
 plot(pruned_net, show.coefficients=TRUE)
+dev.off()
 
 ### Data
 data <- read.csv("data/processed_cleveland.csv", header = FALSE)
@@ -214,15 +227,15 @@ factor(data$fasting_blood_sugar)[1]
 factor(data$rest_ecg)[1]
 factor(data$exercise_induced_angina)[1]
 factor(data$ST_slope)[1]
-factor(data$coloured_arteries)[1] # Levels: ? 0.0 1.0 2.0 3.0
-factor(data$thalassemia)[1] # Levels: ? 3.0 6.0 7.0
+factor(data$coloured_arteries)[1] 
+factor(data$thalassemia)[1] 
 factor(data$diagnosis)[1] 
 
 ### Preprocessing
 
 # NANs
-nrow(data[which(data$coloured_arteries == '?'),]) # 4
-nrow(data[which(data$thalassemia == '?'),]) # 2
+nrow(data[which(data$coloured_arteries == '?'),])
+nrow(data[which(data$thalassemia == '?'),])
 
 # Set these to values that occur most in the dataset 
 counts_thal <- table(data$thalassemia)
@@ -241,7 +254,7 @@ data$diagnosis <- as.numeric(data$diagnosis)
 
 ### Dealing with different types of data
 
-# Convert continuous data to ordered categorical data
+# Convert continuous data to categorical data
 data$age <- as.numeric(cut(data$age, 5))
 data$rest_blood_press <- as.numeric(cut(data$rest_blood_press, c(90, 120, 140, 200), labels = c(1,2,3)))
 data$cholesterol <- as.numeric(cut(data$cholesterol, c(100, 200, 300, 600), labels = c(1,2,3)))
@@ -293,7 +306,7 @@ net_bn <- model2network(toString(net,"bnlearn"))
 fit <- bn.fit(net_bn, train_data); fit
 
 # Predict 
-preds <- predict(fit, node= 'diagnosis', data = test_data, method = "bayes-lw", n = 10000); 
+preds <- predict(fit, node= 'diagnosis', data = test_data, method = "bayes-lw", n = 10000) 
 
 ### Analysis
 
@@ -311,7 +324,7 @@ auc(preds, test_data$diagnosis)
 
 # Confusion Matrix
 cm <- confusionMatrix(data = factor(preds), reference = factor(test_data$diagnosis)); cm
-png("plots/confusion_matrix.png")
+png("plots/confusion_matrix.png", width = 650)
 ggplot(data = as.data.frame(cm$table), aes(Reference, Prediction, fill= Freq)) +
   geom_tile() + geom_text(aes(label=Freq)) +
   scale_fill_gradient(low="white", high="#B4261A") +
